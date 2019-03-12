@@ -1,19 +1,60 @@
-import React, { useState, useEffect } from 'react';
+import React, { useReducer, useEffect } from 'react';
 import axios from 'axios';
 import logo from './logo.svg';
 import './App.css';
 
-const randomCat = () => axios.get('https://aws.random.cat/meow');
+const fetchCat = () => axios.get('https://aws.random.cat/meow');
+
+const initialState = {
+  isFetching: false,
+  cat: {},
+  count: 0
+}
+
+const reducer = (state, { type, payload }) => {
+  switch(type) {
+    case 'FETCH_CAT_PENDING':
+      return {
+        ...state,
+        isFetching: true
+      }
+    case 'FETCH_CAT_SUCCESS':
+      return {
+        ...state,
+        isFetching: false,
+        cat: payload
+      }
+    case 'COUNTER_CLICK':
+      return {
+        ...state,
+        isFetching: false,
+        count: payload
+      }
+    default:
+     return state
+  }
+}
 
 const App = () => {
-  const [count, setCount] = useState(0);
-  const [cat, setCat] = useState({});
+  const [{ cat, isFetching, count }, dispatch] = useReducer(reducer, initialState);
 
   useEffect(() => {
-    randomCat().then(response => {
-      setCat(response.data)
+    dispatch({
+      type: 'FETCH_CAT_PENDING'
     })
+
+    fetchCat().then(response => {
+      dispatch({
+        type: 'FETCH_CAT_SUCCESS',
+        payload: response.data
+      })
+    })
+
   }, []);
+
+  if (isFetching) {
+    return <p>Loading....</p>
+  }
 
   return (
     <div className="App">
@@ -33,13 +74,18 @@ const App = () => {
             borderRadius: 4,
             fontSize: '1.25rem'
           }}
-          onClick={() => setCount(count + 1)}
+          onClick={() => {
+            dispatch({
+              type: 'COUNTER_CLICK',
+              payload: count + 1
+            })
+          }}
         >
           Click me
         </button>
 
         <p>
-          <img src={cat.file} alt="Meow" width="256" />
+          <img src={cat && cat.file} alt="Meow" width="256" />
         </p>
 
       </header>
