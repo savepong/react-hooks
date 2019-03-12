@@ -1,9 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import logo from './logo.svg';
 import './App.css';
 
+const randomCat = () => axios.get('https://aws.random.cat/meow');
+
 const App = () => {
   const [count, setCount] = useState(0);
+  const [cat, setCat] = useState({});
+
+  useEffect(() => {
+    randomCat().then(response => {
+      setCat(response.data)
+    })
+  }, []);
 
   return (
     <div className="App">
@@ -27,6 +37,11 @@ const App = () => {
         >
           Click me
         </button>
+
+        <p>
+          <img src={cat.file} alt="Meow" width="256" />
+        </p>
+
       </header>
     </div>
   );
